@@ -4,9 +4,11 @@ from time import sleep
 import network
 import bme280
 import json
+import gc
+import utime
 
 # WiFi credentials
-SSID = "insert_yours"
+SSID = "insert_yours" 
 PASSWORD = "insert_yours"
 thing_name = "insert_yours"  # Replace with your dweet.io thing name
 
@@ -50,13 +52,21 @@ def read_sensor_data():
 
 # Continuous reading of sensor data and sending it to dweet.io
 while True:
+    gc.collect()
+    current_timestamp = utime.time()
+    time_tuple = utime.localtime(current_timestamp)
+    formatted_time = "{:04d}-{:02d}-{:02d} {:02d}:{:02d}:{:02d}".format(
+        time_tuple[0], time_tuple[1], time_tuple[2],
+        time_tuple[3], time_tuple[4], time_tuple[5]
+    )
     sensor_data = read_sensor_data()
     sensor_reading = {
         "WiFi_status": "Connected" if wifi.isconnected() else "Not connected",
         "sensor_data": sensor_data
     }
     print(json.dumps(sensor_reading))  # Print sensor reading for verification
-
+    print("Timestamp:", formatted_time)
+    print("Free Memory:", gc.mem_free())
     send_data_to_dweet(sensor_reading)
     
     sleep(60)  # Adjust the delay as needed
